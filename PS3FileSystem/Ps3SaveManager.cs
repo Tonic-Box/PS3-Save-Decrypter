@@ -28,7 +28,7 @@ namespace PS3FileSystem
 {
     public class Ps3SaveManager
     {
-        public static SecureFileInfo[] GameConfigList;
+        public static SecureFileInfo[] GameConfigList = Functions.DownloadAldosGameConfig();
 
         public Ps3SaveManager(string savedir, byte[] securefileid)
         {
@@ -40,6 +40,14 @@ namespace PS3FileSystem
                 throw new Exception("Missing PARAM.SFO, Please load a valid directory");
             Param_PFD = new Param_PFD(savedir + "\\PARAM.PFD");
             Param_SFO = new PARAM_SFO(savedir + "\\PARAM.SFO");
+            foreach (var ent in GameConfigList)
+            {
+                if (ent.GameIDs.Contains(Param_SFO.TitleID))
+                {
+                    securefileid = Functions.StringToByteArray(ent.SecureFileID);
+                    break;
+                }
+            }
             if (securefileid != null)
                 Param_PFD.SecureFileID = securefileid;
             RootPath = savedir;

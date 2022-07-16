@@ -105,6 +105,7 @@ namespace PS3FileSystem
 
         public static byte[] StringToByteArray(this string hex)
         {
+            if (hex == null) return null;
             if (hex.Length%2 != 0) hex = hex.PadLeft(hex.Length + 1, '0');
             return Enumerable.Range(0, hex.Length)
                 .Where(x => x%2 == 0)
@@ -130,7 +131,16 @@ namespace PS3FileSystem
         {
             try
             {
-                var text = new WebClient().DownloadString("http://ps3tools.aldostools.org/games.conf");
+                string text, url, cfn = "./games.conf";
+                if (!File.Exists(cfn))
+                {
+                    url = "https://github.com/darkautism/PS3TrophyIsGood/raw/master/PS3TrophyIsGood/pfdtool/games.conf";                    
+                    new WebClient().DownloadFile(url, cfn);
+                }
+                //text = new WebClient().DownloadString(url);
+
+                text = File.ReadAllText("games.conf");
+                
                 if (text == null || text.Length < 100)
                     return new SecureFileInfo[] {};
                 return ReadConfigFromtext(text);
@@ -141,6 +151,16 @@ namespace PS3FileSystem
             }
         }
 
+/*
+raw expanded:
+https://raw.githubusercontent.com/darkautism/PS3TrophyIsGood/master/PS3TrophyIsGood/pfdtool/games.conf
+archived 2013:
+http://web.archive.org/web/20130502165010/http://ps3tools.aldostools.org/games.conf
+404:
+http://ps3tools.aldostools.org/games.conf
+*/
+
+
         public static SecureFileInfo[] ReadConfigFromtext(string inputtext)
         {
             var files = new List<SecureFileInfo>();
@@ -149,11 +169,16 @@ namespace PS3FileSystem
                 string line;
                 var s = line = sr.ReadLine();
                 while (s != null && sr.Peek() > -1 && !s.Equals("; -- UNPROTECTED GAMES --"))
-                    Application.DoEvents();
+                    s = sr.ReadLine();
+                //Application.DoEvents();
+
 
                 var s1 = line = sr.ReadLine();
                 while (s1 != null && sr.Peek() > -1 && s1.StartsWith(";"))
+                {
                     files.Add(new SecureFileInfo(line.Replace(";", ""), "", "", "", false));
+                    s1 = line = sr.ReadLine();
+                }
 
                 while (sr.Peek() > -1)
                 {
@@ -171,12 +196,14 @@ namespace PS3FileSystem
                                 if (readLine != null)
                                 {
                                     var diskhashkey = readLine.Split('=')[1];
+                                    readLine = sr.ReadLine();
                                     var secureid = readLine.Split('=')[1];
                                     files.Add(new SecureFileInfo(name, id, secureid, diskhashkey,
                                         !string.IsNullOrEmpty(secureid) && secureid.Length == 32));
                                 }
                             }
                         }
+                        s2 = line = sr.ReadLine();
                     }
                 }
                 sr.Close();
