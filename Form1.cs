@@ -16,51 +16,19 @@ namespace GSecPs3Decrypter
         {
 			if (this.fbd.ShowDialog() == DialogResult.OK)
 			{
-				this.button2.Enabled = false;
-				this.listView1.Items.Clear();
-				this.dirpath = this.fbd.SelectedPath;
 				this.textBox1.Text = this.fbd.SelectedPath;
-				this.button2.Visible = true;
-				this.button2.Enabled = true;
-				string state;
-				if (File.Exists(this.dirpath + "\\\\~decrypted.txt"))
-				{
-					this.button2.Text = "Encrypt";
-					state = "✓";
-					this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources.unlock;
-				}
-				else
-				{
-					this.button2.Text = "Decrypt";
-					state = "🔒";
-					this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources._lock;
-				}
-				try
-				{
-					Ps3SaveManager ps3SaveManager = new Ps3SaveManager(this.textBox1.Text, this.key);
-					for (int i = 0; i <= ps3SaveManager.Param_PFD.Entries.Length - 1; i++)
-					{
-						this.listView1.Items.Add("[" + state + "] " + ps3SaveManager.Param_PFD.Entries[i].file_name);
-					}
-					this.SetStatus("Loaded directory");
-				}
-				catch(Exception z)
-				{
-					this.listView1.Items.Clear();
-					this.button2.Visible = false;
-					this.button2.Enabled = false;
-					this.SetStatus(z.Message);
-					this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources.icon;
-				}
+				main1();
 			}
 		}
+
+		public Ps3SaveManager ps3SaveManager;
 
 		private void button2_Click(object sender, EventArgs e)
 		{
 			if(this.button2.Text == "Encrypt")
 			{
 				this.listView1.Items.Clear();
-				Ps3SaveManager ps3SaveManager = new Ps3SaveManager(this.dirpath, this.key);
+				//Ps3SaveManager ps3SaveManager = new Ps3SaveManager(this.dirpath, this.key);
 				this.SetStatus(ps3SaveManager.EncryptAllFiles().ToString() + " Files Encrypted");
 				File.Delete(this.dirpath + "\\\\~decrypted.txt");
 				for (int i = 0; i <= ps3SaveManager.Param_PFD.Entries.Length - 1; i++)
@@ -73,8 +41,10 @@ namespace GSecPs3Decrypter
 			else if(this.button2.Text == "Decrypt")
 			{
 				this.listView1.Items.Clear();
-				Ps3SaveManager ps3SaveManager = new Ps3SaveManager(this.dirpath, this.key);
-				this.SetStatus(ps3SaveManager.DecryptAllFiles().ToString() + " Files Decrypted");
+				//Ps3SaveManager ps3SaveManager = new Ps3SaveManager(this.dirpath, this.key);
+				var f1 = ps3SaveManager.DecryptAllFiles();
+				this.SetStatus(f1.ToString() + " Files Decrypted");
+				if (f1 == 0) { Console.WriteLine("zero"); return; }
 				string text = "";
 				for (int i = 0; i <= ps3SaveManager.Param_PFD.Entries.Length - 1; i++)
 				{
@@ -98,7 +68,7 @@ namespace GSecPs3Decrypter
 		private string dirpath;
 
 		// Token: 0x04000040 RID: 64
-		public byte[] key = new byte[]
+		public byte[] key = null;/* new byte[]
 		{
 			202,
 			239,
@@ -116,11 +86,53 @@ namespace GSecPs3Decrypter
 			250,
 			104,
 			221
-		};
+		};*/
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
 			this.textBox1.KeyDown += textBox1_KeyDown;
+		}
+
+		private void main1()
+		{
+			this.listView1.Items.Clear();
+			this.dirpath = this.textBox1.Text;
+			this.fbd.SelectedPath = this.textBox1.Text;
+
+			this.button2.Visible = true;
+			this.button2.Enabled = true;
+			string state;
+			if (File.Exists(this.dirpath + "\\\\~decrypted.txt"))
+			{
+				this.button2.Text = "Encrypt";
+				state = "✓";
+				this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources.unlock;
+			}
+			else
+			{
+				this.button2.Text = "Decrypt";
+				state = "🔒";
+				this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources._lock;
+			}
+			try
+			{
+				//Ps3SaveManager 
+					ps3SaveManager = new Ps3SaveManager(this.textBox1.Text, this.key);
+				//this.key = ps3SaveManager.GetSecureFileIdFromConfigFile_2();
+				for (int i = 0; i <= ps3SaveManager.Param_PFD.Entries.Length - 1; i++)
+				{
+					this.listView1.Items.Add("[" + state + "] " + ps3SaveManager.Param_PFD.Entries[i].file_name);
+				}
+				this.SetStatus("Loaded directory");
+			}
+			catch (Exception z)
+			{
+				this.listView1.Items.Clear();
+				this.button2.Visible = false;
+				this.button2.Enabled = false;
+				this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources.icon;
+				this.SetStatus(z.Message);
+			}
 		}
 
 		private void textBox1_KeyDown(object sender, KeyEventArgs e)
@@ -129,42 +141,7 @@ namespace GSecPs3Decrypter
 			{
 				if (Directory.Exists(this.textBox1.Text))
 				{
-					this.listView1.Items.Clear();
-					this.dirpath = this.textBox1.Text;
-					this.fbd.SelectedPath = this.textBox1.Text;
-
-					this.button2.Visible = true;
-					this.button2.Enabled = true;
-					string state;
-					if (File.Exists(this.dirpath + "\\\\~decrypted.txt"))
-					{
-						this.button2.Text = "Encrypt";
-						state = "✓";
-						this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources.unlock;
-					}
-					else
-					{
-						this.button2.Text = "Decrypt";
-						state = "🔒";
-						this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources._lock;
-					}
-					try
-					{
-						Ps3SaveManager ps3SaveManager = new Ps3SaveManager(this.textBox1.Text, this.key);
-						for (int i = 0; i <= ps3SaveManager.Param_PFD.Entries.Length - 1; i++)
-						{
-							this.listView1.Items.Add("[" + state + "] " + ps3SaveManager.Param_PFD.Entries[i].file_name);
-						}
-						this.SetStatus("Loaded directory");
-					}
-					catch (Exception z)
-					{
-						this.listView1.Items.Clear();
-						this.button2.Visible = false;
-						this.button2.Enabled = false;
-						this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources.icon;
-						this.SetStatus(z.Message);
-					}
+					main1();
 				}
 				else
 				{

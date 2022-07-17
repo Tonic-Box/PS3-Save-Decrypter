@@ -855,7 +855,7 @@ namespace PS3FileSystem
             try
             {
                 if (!File.Exists(filepath) || !ValidEntryHash(filepath, false))
-                    return false;
+                { Console.WriteLine("not decrypting"); return  false; }
                 var name = new FileInfo(filepath).Name;
                 byte[] data = null;
                 using (var fs = File.Open(filepath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
@@ -925,6 +925,8 @@ namespace PS3FileSystem
                         if (ValidEntryHash(filepath, false))
                             if (Decrypt(filepath))
                                 decrypted++;
+                            else;
+                        else Console.WriteLine("inValidEntryHash(filepath, false)");
                 }
                 return decrypted;
             }
