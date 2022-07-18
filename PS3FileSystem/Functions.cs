@@ -131,19 +131,28 @@ namespace PS3FileSystem
         {
             try
             {
-                string text, url, cfn = "./games.conf";
+                
+                string text, url, cfn = "games.conf";
+                url = "https://github.com/darkautism/PS3TrophyIsGood/raw/master/PS3TrophyIsGood/pfdtool/games.conf";
+
+                Console.WriteLine("Downloading {0} from {1}", cfn, url);
+                /*
                 if (!File.Exists(cfn))
                 {
-                    url = "https://github.com/darkautism/PS3TrophyIsGood/raw/master/PS3TrophyIsGood/pfdtool/games.conf";                    
                     new WebClient().DownloadFile(url, cfn);
                 }
-                //text = new WebClient().DownloadString(url);
+                */
+                text = new WebClient().DownloadString(url);
 
-                text = File.ReadAllText("games.conf");
                 
+                //text = File.ReadAllText(cfn);
+                Console.WriteLine("reading cfg");
+
+
                 if (text == null || text.Length < 100)
                     return new SecureFileInfo[] {};
-                return ReadConfigFromtext(text);
+                return ReadConfigFromtext2(text);
+                //return ReadConfigFromFile(cfn);
             }
             catch
             {
@@ -151,15 +160,15 @@ namespace PS3FileSystem
             }
         }
 
-/*
-raw expanded:
-https://raw.githubusercontent.com/darkautism/PS3TrophyIsGood/master/PS3TrophyIsGood/pfdtool/games.conf
-archived 2013:
-http://web.archive.org/web/20130502165010/http://ps3tools.aldostools.org/games.conf
-404:
-http://ps3tools.aldostools.org/games.conf
-*/
-
+        /*
+        https://github.com/darkautism/PS3TrophyIsGood/raw/master/PS3TrophyIsGood/pfdtool/games.conf
+        https://github.com/DarkNacho/TrophyWizard/raw/main/TrophyWizardGUIpfdtoolgames.conf
+        uses dummy keys ::
+        https://github.com/bucanero/apollo-ps3/raw/master/appdata/games.conf
+        not working, why? :: 
+        https://github.com/Nicba1010/PS-Tools/raw/master/format/pfd/games.conf
+        https://github.com/Zephyer/BSD_CheatsDB/raw/masterUpdatesgames.conf
+        */
 
         public static SecureFileInfo[] ReadConfigFromtext(string inputtext)
         {
@@ -211,8 +220,34 @@ http://ps3tools.aldostools.org/games.conf
             return files.ToArray();
         }
 
+        public static SecureFileInfo[] ReadConfigFromtext2(string inputtext)
+        {
+            var files = new List<SecureFileInfo>();
+
+            var sr = new StringReader(inputtext);
+
+            while (sr.Peek() > -1)
+            {
+                string name = sr.ReadLine();
+                if (!name.Contains("; \"")) continue;
+                //Console.WriteLine(name);
+                string ids = sr.ReadLine();
+                string dhk = sr.ReadLine().Split('=')[1];
+                string sid = sr.ReadLine().Split('=')[1];
+                files.Add(new SecureFileInfo(name, ids, sid, dhk,
+                    !string.IsNullOrEmpty(sid) && sid.Length == 32));
+                //Console.WriteLine(files.Length);
+                
+            }
+            sr.Close();
+
+            return files.ToArray();
+        }
+
+
         public static SecureFileInfo[] DownloadAldosGameConfig()
         {
+            return xDownloadAldosGameConfig();
             SecureFileInfo[] x = {};
             var t = new Thread(() => x = xDownloadAldosGameConfig());
             t.Start();

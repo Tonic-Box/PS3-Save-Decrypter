@@ -32,6 +32,8 @@ namespace PS3FileSystem
 
         public Ps3SaveManager(string savedir, byte[] securefileid)
         {
+            Console.WriteLine(GameConfigList.Length);
+
             if (!Directory.Exists(savedir))
                 throw new Exception("No such directory exist!");
             if (!File.Exists(savedir + "\\PARAM.PFD"))

@@ -9,8 +9,8 @@ namespace GSecPs3Decrypter
     {
         public Main()
         {
-            InitializeComponent();
-        }
+            InitializeComponent();						
+		}
 
         private void button1_Click(object sender, EventArgs e)
         {
