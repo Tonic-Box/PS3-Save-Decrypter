@@ -128,6 +128,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)*$(TargetExt)" "$(ProjectDir)\build\"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y "$(TargetDir)*$(TargetExt)" "$(ProjectDir)\build\"</PostBuildEvent>
   </PropertyGroup>
 </Project>

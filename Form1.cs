@@ -28,7 +28,6 @@ namespace GSecPs3Decrypter
 			if(this.button2.Text == "Encrypt")
 			{
 				this.listView1.Items.Clear();
-				//Ps3SaveManager ps3SaveManager = new Ps3SaveManager(this.dirpath, this.key);
 				this.SetStatus(ps3SaveManager.EncryptAllFiles().ToString() + " Files Encrypted");
 				File.Delete(this.dirpath + "\\\\~decrypted.txt");
 				for (int i = 0; i <= ps3SaveManager.Param_PFD.Entries.Length - 1; i++)
@@ -41,7 +40,6 @@ namespace GSecPs3Decrypter
 			else if(this.button2.Text == "Decrypt")
 			{
 				this.listView1.Items.Clear();
-				//Ps3SaveManager ps3SaveManager = new Ps3SaveManager(this.dirpath, this.key);
 				var f1 = ps3SaveManager.DecryptAllFiles();
 				this.SetStatus(f1.ToString() + " Files Decrypted");
 				if (f1 == 0) { Console.WriteLine("zero"); return; }
@@ -93,6 +91,10 @@ namespace GSecPs3Decrypter
 			this.textBox1.KeyDown += textBox1_KeyDown;
 		}
 
+		string tid0;
+
+		public static SecureFileInfo[] GameConfigList = Functions.DownloadAldosGameConfig();
+
 		private void main1()
 		{
 			this.listView1.Items.Clear();
@@ -116,14 +118,19 @@ namespace GSecPs3Decrypter
 			}
 			try
 			{
-				//Ps3SaveManager 
-					ps3SaveManager = new Ps3SaveManager(this.textBox1.Text, this.key);
-				//this.key = ps3SaveManager.GetSecureFileIdFromConfigFile_2();
+				ps3SaveManager = new Ps3SaveManager(this.textBox1.Text);
 				for (int i = 0; i <= ps3SaveManager.Param_PFD.Entries.Length - 1; i++)
 				{
 					this.listView1.Items.Add("[" + state + "] " + ps3SaveManager.Param_PFD.Entries[i].file_name);
 				}
 				this.SetStatus("Loaded directory");
+
+				var tid1 = ps3SaveManager.Param_SFO.Title;
+				if (tid0 != tid1) key = ps3SaveManager.GetSecureFileIdFromConfigList(GameConfigList);
+				else Console.WriteLine("same title & key");
+				tid0 = tid1;
+				//ps3SaveManager.Param_PFD.SecureFileID = key;
+				ps3SaveManager.setKey(key);
 			}
 			catch (Exception z)
 			{

@@ -135,7 +135,7 @@ namespace PS3FileSystem
                 string text, url, cfn = "games.conf";
                 url = "https://github.com/darkautism/PS3TrophyIsGood/raw/master/PS3TrophyIsGood/pfdtool/games.conf";
 
-                Console.WriteLine("Downloading {0} from {1}", cfn, url);
+                Console.WriteLine("Downloading {0} from \n{1}", cfn, url);
                 /*
                 if (!File.Exists(cfn))
                 {
@@ -146,8 +146,6 @@ namespace PS3FileSystem
 
                 
                 //text = File.ReadAllText(cfn);
-                Console.WriteLine("reading cfg");
-
 
                 if (text == null || text.Length < 100)
                     return new SecureFileInfo[] {};
@@ -226,14 +224,25 @@ namespace PS3FileSystem
 
             var sr = new StringReader(inputtext);
 
+            string name;
+
+            while (sr.ReadLine() != "; -- UNPROTECTED GAMES --")
+            {
+            }
+
+            while ((name = sr.ReadLine()) != "")
+            {
+                files.Add(new SecureFileInfo(name.Replace(";", ""), "", "", "", false));
+            }
+
             while (sr.Peek() > -1)
             {
-                string name = sr.ReadLine();
+                name = sr.ReadLine();
                 if (!name.Contains("; \"")) continue;
                 //Console.WriteLine(name);
-                string ids = sr.ReadLine();
-                string dhk = sr.ReadLine().Split('=')[1];
-                string sid = sr.ReadLine().Split('=')[1];
+                string ids = sr.ReadLine(),
+                    dhk = sr.ReadLine().Split('=')[1],
+                    sid = sr.ReadLine().Split('=')[1];
                 files.Add(new SecureFileInfo(name, ids, sid, dhk,
                     !string.IsNullOrEmpty(sid) && sid.Length == 32));
                 //Console.WriteLine(files.Length);
@@ -247,12 +256,13 @@ namespace PS3FileSystem
 
         public static SecureFileInfo[] DownloadAldosGameConfig()
         {
-            return xDownloadAldosGameConfig();
+            //return xDownloadAldosGameConfig();
             SecureFileInfo[] x = {};
             var t = new Thread(() => x = xDownloadAldosGameConfig());
             t.Start();
             while (t.ThreadState != ThreadState.Stopped)
                 Application.DoEvents();
+            Console.WriteLine("Read {0} keys.", x.Length);
             return x;
         }
 
