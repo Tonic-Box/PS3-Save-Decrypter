@@ -28,7 +28,7 @@ namespace PS3FileSystem
 {
     public class Ps3SaveManager
     {
-        public static SecureFileInfo[] GameConfigList;
+        public static SecureFileInfo[] GameConfigList = Functions.DownloadAldosGameConfig();
 
         public Ps3SaveManager(string savedir, byte[] securefileid)
         {
@@ -40,8 +40,9 @@ namespace PS3FileSystem
                 throw new Exception("Missing PARAM.SFO, Please load a valid directory");
             Param_PFD = new Param_PFD(savedir + "\\PARAM.PFD");
             Param_SFO = new PARAM_SFO(savedir + "\\PARAM.SFO");
-            if (securefileid != null)
-                Param_PFD.SecureFileID = securefileid;
+
+            getSetKey();
+
             RootPath = savedir;
             if (File.Exists(savedir + "\\ICON0.PNG"))
             {
@@ -131,5 +132,60 @@ namespace PS3FileSystem
                 where i.SecureFileID != null && i.SecureFileID.Length == 32
                 select i.SecureFileID.StringToByteArray()).FirstOrDefault();
         }
+
+        private byte[] GetSecureFileIdFromConfigFile_2()
+        {
+            if (GameConfigList == null || GameConfigList.Length == 0)
+                return null;
+
+            bool b1 = false; byte[] securefileid = null;
+            
+            foreach (var ent in GameConfigList)
+            {
+                b1 = ent.Name.Contains(Param_SFO.Title) || ent.GameIDs.Contains(Param_SFO.TitleID.Substring(0, 9));
+                if (b1)
+                {
+                    Console.WriteLine("Found match in database!");
+                    var s1 = ent.SecureFileID;
+                    if (s1 != null)
+                    {
+                        Console.WriteLine(s1);
+                        securefileid = Functions.StringToByteArray(s1);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Game is not protected / key is null!");
+                    }
+                    break;
+                }
+            }
+
+            if (!b1)
+            {
+                Console.WriteLine("Game is not found in database!");
+            }
+
+            return securefileid;
+        }
+
+        private bool getSetKey()
+        {
+            var securefileid = GetSecureFileIdFromConfigFile_2();
+
+            if (securefileid != null)
+            {
+                Console.WriteLine("Assigned a key!");
+                Param_PFD.SecureFileID = securefileid;
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("null key not assigned!");
+                return false;
+            }
+            
+            
+        }
+
     }
 }
