@@ -1,14 +1,12 @@
 # PS3-Save-Decrypter
 A save decrypter for PS3.  
-Download [here](./build/GSecPs3Decrypter.exe). 
+Download [here](./build/GSecPs3Decrypter.exe).
  
 ![demo](./demo/demo.gif)  
 
-Uses games.conf (downloaded from public url). If it doesn't contains info for the game, there might be more comprehesive versions with it.  
-
-_ todo:
-- read games.conf from file, not url; 
-- fix parsing issue of some versions; 
+Requires games.conf.  
+*(downloads from public url if not presented).*  
+If it doesn't contains info for the game, there might be more comprehesive versions with it.  
 
 <details>
   <summary>Changelog</summary>

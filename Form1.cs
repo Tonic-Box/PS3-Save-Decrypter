@@ -93,7 +93,7 @@ namespace GSecPs3Decrypter
 
 		string tid0;
 
-		public static SecureFileInfo[] GameConfigList = Functions.DownloadAldosGameConfig();
+		public static SecureFileInfo[] GameConfigList = Functions.ReadGamesConf();
 
 		private void main1()
 		{

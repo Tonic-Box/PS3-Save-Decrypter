@@ -127,45 +127,30 @@ namespace PS3FileSystem
             return null;
         }
 
-        private static SecureFileInfo[] xDownloadAldosGameConfig()
+        private static void xDownloadAldosGameConfig(string url, string path)
         {
-            try
+            Console.WriteLine("Download from Github?\ny/n", path, url);
+            if (Console.ReadKey(true).KeyChar != 'y')
             {
-                
-                string text, url, cfn = "games.conf";
-                url = "https://github.com/darkautism/PS3TrophyIsGood/raw/master/PS3TrophyIsGood/pfdtool/games.conf";
-
-                Console.WriteLine("Downloading {0} from \n{1}", cfn, url);
-                /*
-                if (!File.Exists(cfn))
-                {
-                    new WebClient().DownloadFile(url, cfn);
-                }
-                */
-                text = new WebClient().DownloadString(url);
-
-                
-                //text = File.ReadAllText(cfn);
-
-                if (text == null || text.Length < 100)
-                    return new SecureFileInfo[] {};
-                return ReadConfigFromtext2(text);
-                //return ReadConfigFromFile(cfn);
+                Console.WriteLine("Come back soon...");
+                return;
             }
-            catch
-            {
-                return new SecureFileInfo[] {};
-            }
+            Console.WriteLine("{0}", url);
+            new WebClient().DownloadFile(url, path);
         }
 
         /*
-        https://github.com/darkautism/PS3TrophyIsGood/raw/master/PS3TrophyIsGood/pfdtool/games.conf
-        https://github.com/DarkNacho/TrophyWizard/raw/main/TrophyWizardGUIpfdtoolgames.conf
-        uses dummy keys ::
-        https://github.com/bucanero/apollo-ps3/raw/master/appdata/games.conf
-        not working, why? :: 
-        https://github.com/Nicba1010/PS-Tools/raw/master/format/pfd/games.conf
-        https://github.com/Zephyer/BSD_CheatsDB/raw/masterUpdatesgames.conf
+        private static SecureFileInfo[] ReadGameConfig(string path)
+        {
+            return ReadConfigFromtext2(path);
+            var text = File.ReadAllText(path);
+
+                    //var sr = new StringReader(text);
+
+            if (text == null || text.Length < 100)
+                return new SecureFileInfo[] { };
+            return ReadConfigFromtext2(text);
+        }
         */
 
         public static SecureFileInfo[] ReadConfigFromtext(string inputtext)
@@ -218,50 +203,81 @@ namespace PS3FileSystem
             return files.ToArray();
         }
 
-        public static SecureFileInfo[] ReadConfigFromtext2(string inputtext)
+        public static SecureFileInfo[] ReadGameConfig2(string path)
         {
+            var sr = File.OpenText(path);
+
             var files = new List<SecureFileInfo>();
 
-            var sr = new StringReader(inputtext);
-
-            string name;
+            string s1;
 
             while (sr.ReadLine() != "; -- UNPROTECTED GAMES --")
             {
             }
 
-            while ((name = sr.ReadLine()) != "")
+            while ((s1 = sr.ReadLine()) != "")
             {
-                files.Add(new SecureFileInfo(name.Replace(";", ""), "", "", "", false));
+                files.Add(new SecureFileInfo(s1.Replace(";", ""), "", "", "", false));
             }
+            
+            var d1 = new Dictionary<string, string> {
+                { "name", "; \"" },
+                { "id", "[" },
+                { "dhk", ";disc_hash_key=" },
+                { "sfid", "secure_file_id:*=" }
+            };
 
+            var d2 = new Dictionary<string, string> {
+                { "name", "; \"" },
+                { "id", "[" },
+                { "dhk", ";disc_hash_key=" },
+                { "sfid", "secure_file_id:*=" }
+            };
+            
             while (sr.Peek() > -1)
             {
-                name = sr.ReadLine();
-                if (!name.Contains("; \"")) continue;
-                //Console.WriteLine(name);
-                string ids = sr.ReadLine(),
-                    dhk = sr.ReadLine().Split('=')[1],
-                    sid = sr.ReadLine().Split('=')[1];
-                files.Add(new SecureFileInfo(name, ids, sid, dhk,
-                    !string.IsNullOrEmpty(sid) && sid.Length == 32));
-                //Console.WriteLine(files.Length);
-                
+                s1 = sr.ReadLine();
+                int i = -1;
+                foreach (var j in d1)
+                {
+                    i++;
+                    if (!s1.Contains(j.Value))
+                    {
+                        continue;
+                    }
+                    
+                    d2[j.Key] = (j.Value.Contains("=")) ? s1.Split('=')[1] : s1;
+
+                    if (i == 3)
+                    {
+                        var sid = d2["sfid"];
+                        files.Add(new SecureFileInfo(d2["name"], d2["id"], sid, d2["dhk"], !string.IsNullOrEmpty(sid) && sid.Length == 32));
+                    }
+                    break;
+                }
             }
-            sr.Close();
+
+                sr.Close();
 
             return files.ToArray();
         }
 
 
-        public static SecureFileInfo[] DownloadAldosGameConfig()
+        public static SecureFileInfo[] ReadGamesConf()
         {
-            //return xDownloadAldosGameConfig();
-            SecureFileInfo[] x = {};
-            var t = new Thread(() => x = xDownloadAldosGameConfig());
-            t.Start();
-            while (t.ThreadState != ThreadState.Stopped)
-                Application.DoEvents();
+            string path = "games.conf", url =
+                "https://github.com/Nicba1010/PS-Tools/raw/master/format/pfd/games.conf";
+
+            //File.Delete(path);
+            while (!File.Exists(path))
+            {
+                Console.WriteLine("{0} not found", path);
+                xDownloadAldosGameConfig(url, path);
+                Console.WriteLine("Press any key\n");
+                Console.ReadKey(true);
+            }
+
+            var x = ReadGameConfig2(path);
             Console.WriteLine("Read {0} keys.", x.Length);
             return x;
         }
