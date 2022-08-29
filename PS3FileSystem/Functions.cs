@@ -127,39 +127,31 @@ namespace PS3FileSystem
             return null;
         }
 
-        private static SecureFileInfo[] xDownloadAldosGameConfig()
+        private static void xDownloadAldosGameConfig(string url, string path)
         {
-            try
+            Console.WriteLine("Download from Github?\ny/n", path, url);
+            if (Console.ReadKey(true).KeyChar != 'y')
             {
-                string text, url, cfn = "./games.conf";
-                if (!File.Exists(cfn))
-                {
-                    url = "https://github.com/darkautism/PS3TrophyIsGood/raw/master/PS3TrophyIsGood/pfdtool/games.conf";                    
-                    new WebClient().DownloadFile(url, cfn);
-                }
-                //text = new WebClient().DownloadString(url);
-
-                text = File.ReadAllText("games.conf");
-                
-                if (text == null || text.Length < 100)
-                    return new SecureFileInfo[] {};
-                return ReadConfigFromtext(text);
+                Console.WriteLine("Come back soon...");
+                return;
             }
-            catch
-            {
-                return new SecureFileInfo[] {};
-            }
+            Console.WriteLine("{0}", url);
+            new WebClient().DownloadFile(url, path);
         }
 
-/*
-raw expanded:
-https://raw.githubusercontent.com/darkautism/PS3TrophyIsGood/master/PS3TrophyIsGood/pfdtool/games.conf
-archived 2013:
-http://web.archive.org/web/20130502165010/http://ps3tools.aldostools.org/games.conf
-404:
-http://ps3tools.aldostools.org/games.conf
-*/
+        /*
+        private static SecureFileInfo[] ReadGameConfig(string path)
+        {
+            return ReadConfigFromtext2(path);
+            var text = File.ReadAllText(path);
 
+                    //var sr = new StringReader(text);
+
+            if (text == null || text.Length < 100)
+                return new SecureFileInfo[] { };
+            return ReadConfigFromtext2(text);
+        }
+        */
 
         public static SecureFileInfo[] ReadConfigFromtext(string inputtext)
         {
@@ -211,13 +203,82 @@ http://ps3tools.aldostools.org/games.conf
             return files.ToArray();
         }
 
-        public static SecureFileInfo[] DownloadAldosGameConfig()
+        public static SecureFileInfo[] ReadGameConfig2(string path)
         {
-            SecureFileInfo[] x = {};
-            var t = new Thread(() => x = xDownloadAldosGameConfig());
-            t.Start();
-            while (t.ThreadState != ThreadState.Stopped)
-                Application.DoEvents();
+            var sr = File.OpenText(path);
+
+            var files = new List<SecureFileInfo>();
+
+            string s1;
+
+            while (sr.ReadLine() != "; -- UNPROTECTED GAMES --")
+            {
+            }
+
+            while ((s1 = sr.ReadLine()) != "")
+            {
+                files.Add(new SecureFileInfo(s1.Replace(";", ""), "", "", "", false));
+            }
+            
+            var d1 = new Dictionary<string, string> {
+                { "name", "; \"" },
+                { "id", "[" },
+                { "dhk", ";disc_hash_key=" },
+                { "sfid", "secure_file_id:*=" }
+            };
+
+            var d2 = new Dictionary<string, string> {
+                { "name", "; \"" },
+                { "id", "[" },
+                { "dhk", ";disc_hash_key=" },
+                { "sfid", "secure_file_id:*=" }
+            };
+            
+            while (sr.Peek() > -1)
+            {
+                s1 = sr.ReadLine();
+                int i = -1;
+                foreach (var j in d1)
+                {
+                    i++;
+                    if (!s1.Contains(j.Value))
+                    {
+                        continue;
+                    }
+                    
+                    d2[j.Key] = (j.Value.Contains("=")) ? s1.Split('=')[1] : s1;
+
+                    if (i == 3)
+                    {
+                        var sid = d2["sfid"];
+                        files.Add(new SecureFileInfo(d2["name"], d2["id"], sid, d2["dhk"], !string.IsNullOrEmpty(sid) && sid.Length == 32));
+                    }
+                    break;
+                }
+            }
+
+                sr.Close();
+
+            return files.ToArray();
+        }
+
+
+        public static SecureFileInfo[] ReadGamesConf()
+        {
+            string path = "games.conf", url =
+                "https://github.com/Nicba1010/PS-Tools/raw/master/format/pfd/games.conf";
+
+            //File.Delete(path);
+            while (!File.Exists(path))
+            {
+                Console.WriteLine("{0} not found", path);
+                xDownloadAldosGameConfig(url, path);
+                Console.WriteLine("Press any key\n");
+                Console.ReadKey(true);
+            }
+
+            var x = ReadGameConfig2(path);
+            Console.WriteLine("Read {0} keys.", x.Length);
             return x;
         }
 

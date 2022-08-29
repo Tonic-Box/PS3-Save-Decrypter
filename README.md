@@ -1,12 +1,19 @@
 # PS3-Save-Decrypter
-A save decrypter for PS3
+A save decrypter for PS3.  
+Download [here](./build/GSecPs3Decrypter.exe).
+ 
+![demo](./demo/demo.gif)  
 
-## Configuration
+Requires games.conf.  
+*(downloads from public url if not presented).*  
+If it doesn't contains info for the game, there might be more comprehesive versions with it.  
 
-- if games.conf is not presented, it is downloaded from public url
-- if database doesn't contains info for the game ("0 Files Decrypted"), there might be more comprehesive versions with it
+<details>
+  <summary>Changelog</summary>
 
-## Changelog:
+- ReadConfigFromtext2, auto-releases.  
+better games.conf parsing code.  
+builds generated in ./build/  
 
 - fix game search algo
 match by TitleID.Substring(0,9) or Title  
@@ -21,7 +28,4 @@ Param.SFO -> TitleID-> games.conf -> SecureFileID
 (2) downloads if not presented  
 minor: add .gitignore
 
-## TODO:
-- refactor: games.conf parsing code (ReadConfigFromtext)
-- find larger games.conf.  
-- add logging to DownloadAldosGameConfig.  
+</details>

@@ -28,9 +28,8 @@ namespace PS3FileSystem
 {
     public class Ps3SaveManager
     {
-        public static SecureFileInfo[] GameConfigList = Functions.DownloadAldosGameConfig();
 
-        public Ps3SaveManager(string savedir, byte[] securefileid)
+        public Ps3SaveManager(string savedir)//, byte[] securefileid)
         {
             if (!Directory.Exists(savedir))
                 throw new Exception("No such directory exist!");
@@ -40,8 +39,6 @@ namespace PS3FileSystem
                 throw new Exception("Missing PARAM.SFO, Please load a valid directory");
             Param_PFD = new Param_PFD(savedir + "\\PARAM.PFD");
             Param_SFO = new PARAM_SFO(savedir + "\\PARAM.SFO");
-
-            getSetKey();
 
             RootPath = savedir;
             if (File.Exists(savedir + "\\ICON0.PNG"))
@@ -103,7 +100,7 @@ namespace PS3FileSystem
             return Param_PFD.RebuilParamPFD(RootPath, encryptfiles);
         }
 
-        public int LoadGameConfigFile(string filepath)
+        public int LoadGameConfigFile(string filepath, SecureFileInfo[] GameConfigList)
         {
             try
             {
@@ -122,7 +119,7 @@ namespace PS3FileSystem
             }
         }
 
-        private byte[] GetSecureFileIdFromConfigFile(string titleid)
+        private byte[] GetSecureFileIdFromConfigFile(string titleid, SecureFileInfo[] GameConfigList)
         {
             if (GameConfigList == null || GameConfigList.Length == 0)
                 return null;
@@ -133,7 +130,7 @@ namespace PS3FileSystem
                 select i.SecureFileID.StringToByteArray()).FirstOrDefault();
         }
 
-        private byte[] GetSecureFileIdFromConfigFile_2()
+        public byte[] GetSecureFileIdFromConfigList(SecureFileInfo[] GameConfigList)
         {
             if (GameConfigList == null || GameConfigList.Length == 0)
                 return null;
@@ -168,9 +165,9 @@ namespace PS3FileSystem
             return securefileid;
         }
 
-        private bool getSetKey()
+        public bool setKey(byte [] securefileid)
         {
-            var securefileid = GetSecureFileIdFromConfigFile_2();
+            //var securefileid = GetSecureFileIdFromConfigFile_2();
 
             if (securefileid != null)
             {
