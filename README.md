@@ -4,9 +4,14 @@ Download [here](./build/GSecPs3Decrypter.exe).
  
 ![demo](./demo/demo.gif)  
 
-Requires games.conf.  
-*(downloads from public url if not presented).*  
+Uses games.conf file to get decryption id.  
+*(downloaded from public url if not presented).*  
 If it doesn't contains info for the game, there might be more comprehesive versions with it.  
+
+## Similar projects
+Py2.7: [PARAM.PFD-PS3](https://github.com/r3sus/PARAM.PFD-PS3-Demons-Souls-Savegame-Tool). (slower)   
+C: [pfd_sfo_tools](https://github.com/bucanero/pfd_sfo_tools)
+/ [pfdtool](https://github.com/SteffenL/pfdtool/tree/develop).  
 
 <details>
   <summary>Changelog</summary>

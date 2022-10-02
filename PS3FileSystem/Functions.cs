@@ -127,16 +127,18 @@ namespace PS3FileSystem
             return null;
         }
 
-        private static void xDownloadAldosGameConfig(string url, string path)
+        public static bool xDownloadGameConfig(string path, string url)
         {
             Console.WriteLine("Download from Github?\ny/n", path, url);
             if (Console.ReadKey(true).KeyChar != 'y')
             {
                 Console.WriteLine("Come back soon...");
-                return;
+                return false;
             }
             Console.WriteLine("{0}", url);
             new WebClient().DownloadFile(url, path);
+            Console.WriteLine("Complete");
+            return true;
         }
 
         /*
@@ -152,6 +154,8 @@ namespace PS3FileSystem
             return ReadConfigFromtext2(text);
         }
         */
+
+        /*
 
         public static SecureFileInfo[] ReadConfigFromtext(string inputtext)
         {
@@ -202,7 +206,10 @@ namespace PS3FileSystem
             }
             return files.ToArray();
         }
+        
+        */
 
+        /*
         public static SecureFileInfo[] ReadGameConfig2(string path)
         {
             var sr = File.OpenText(path);
@@ -227,20 +234,13 @@ namespace PS3FileSystem
                 { "sfid", "secure_file_id:*=" }
             };
 
-            var d2 = new Dictionary<string, string> {
-                { "name", "; \"" },
-                { "id", "[" },
-                { "dhk", ";disc_hash_key=" },
-                { "sfid", "secure_file_id:*=" }
-            };
+            var d2 = new Dictionary<string, string>(d1); // todo: empty init values
             
             while (sr.Peek() > -1)
             {
                 s1 = sr.ReadLine();
-                int i = -1;
                 foreach (var j in d1)
                 {
-                    i++;
                     if (!s1.Contains(j.Value))
                     {
                         continue;
@@ -248,7 +248,7 @@ namespace PS3FileSystem
                     
                     d2[j.Key] = (j.Value.Contains("=")) ? s1.Split('=')[1] : s1;
 
-                    if (i == 3)
+                    if (j.Key == "sfid")
                     {
                         var sid = d2["sfid"];
                         files.Add(new SecureFileInfo(d2["name"], d2["id"], sid, d2["dhk"], !string.IsNullOrEmpty(sid) && sid.Length == 32));
@@ -261,8 +261,9 @@ namespace PS3FileSystem
 
             return files.ToArray();
         }
+        */
 
-
+        /*
         public static SecureFileInfo[] ReadGamesConf()
         {
             string path = "games.conf", url =
@@ -272,7 +273,7 @@ namespace PS3FileSystem
             while (!File.Exists(path))
             {
                 Console.WriteLine("{0} not found", path);
-                xDownloadAldosGameConfig(url, path);
+                xDownloadGameConfig(url, path);
                 Console.WriteLine("Press any key\n");
                 Console.ReadKey(true);
             }
@@ -280,6 +281,32 @@ namespace PS3FileSystem
             var x = ReadGameConfig2(path);
             Console.WriteLine("Read {0} keys.", x.Length);
             return x;
+        }
+        */
+
+
+        public static bool GetGamesConf(string path, string url)
+        {
+            // File.Delete(path);
+            while (!File.Exists(path))
+            {
+                Console.WriteLine("{0} not found", path);
+
+                Console.WriteLine("Download from Github?\ny/n");
+                if (Console.ReadKey(true).KeyChar == 'y')
+                {
+                    Console.WriteLine("{0}", url);
+                    new WebClient().DownloadFile(url, path);
+                    Console.WriteLine("Complete");
+                }
+                else
+                {
+                    // just so to make some delay
+                    Console.WriteLine("Press any key\n");
+                    Console.ReadKey(true);
+                }
+            }
+            return true;
         }
 
         public static byte[] GetHMACSHA1(byte[] key, byte[] data, int start, int length)

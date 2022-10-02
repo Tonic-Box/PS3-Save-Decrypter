@@ -261,6 +261,7 @@ namespace PS3FileSystem
         private void DoProgress(string message, MessageType type)
         {
             ProgressChanged?.Invoke(this, message, type);
+            //Console.WriteLine(message);
         }
 
         internal struct PFDEntries
@@ -904,7 +905,7 @@ namespace PS3FileSystem
         }
 
         /// <summary>
-        ///     Decrypt all files that are inside the specified root path, andalso availible inside one of the Param.PFD entries
+        ///     Decrypt all files that are inside the specified root path, and also available inside one of the Param.PFD entries
         /// </summary>
         /// <param name="root">
         ///     the root path of the directory containing all files to be decypted, The initialized param.PFD should
@@ -921,6 +922,7 @@ namespace PS3FileSystem
                     if (t.file_name.ToLower() == "param.sfo")
                         continue;
                     var filepath = root + "\\" + t.file_name;
+                    Console.WriteLine(t.file_name);
                     if (File.Exists(filepath))
                         if (ValidEntryHash(filepath, false))
                             if (Decrypt(filepath))
@@ -1147,6 +1149,7 @@ namespace PS3FileSystem
                 for (var i = 0; i < PFDEntries.entries.Count; i++)
                 {
                     var t = PFDEntries.entries[i];
+                    Console.WriteLine(t.file_name);
                     if (t.file_name.ToLower() == "param.sfo")
                         continue;
                     var filepath = root + "\\" + t.file_name;
@@ -1159,6 +1162,7 @@ namespace PS3FileSystem
                                 if (!ValidEntryHash(filepath, true))
                                     return -1;
                                 encrypted++;
+                                Console.Write(" + \n");
                             }
                         }
                     }

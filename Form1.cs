@@ -9,7 +9,7 @@ namespace GSecPs3Decrypter
     {
         public Main()
         {
-            InitializeComponent();						
+            InitializeComponent();
 		}
 
         private void button1_Click(object sender, EventArgs e)
@@ -53,6 +53,7 @@ namespace GSecPs3Decrypter
 				this.button2.Text = "Encrypt";
 				this.pictureBox1.Image = global::GSecPs3Decrypter.Properties.Resources.unlock;
 			}
+			Console.WriteLine("Done.");
 		}
 
 		public void SetStatus(string text)
@@ -62,29 +63,9 @@ namespace GSecPs3Decrypter
 
 		public FolderBrowserDialog fbd = new FolderBrowserDialog();
 
-		// Token: 0x0400003F RID: 63
 		private string dirpath;
 
-		// Token: 0x04000040 RID: 64
-		public byte[] key = null;/* new byte[]
-		{
-			202,
-			239,
-			174,
-			185,
-			39,
-			34,
-			167,
-			203,
-			83,
-			93,
-			82,
-			135,
-			34,
-			250,
-			104,
-			221
-		};*/
+		public byte[] sfid = null;
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
@@ -93,7 +74,14 @@ namespace GSecPs3Decrypter
 
 		string tid0;
 
-		public static SecureFileInfo[] GameConfigList = Functions.ReadGamesConf();
+		//public static SecureFileInfo[] GameConfigList = Functions.ReadGamesConf();
+
+		static string cfg = "games.conf", 
+			url = "https://github.com/Nicba1010/PS-Tools/raw/master/format/pfd/games.conf";
+
+		public static bool b1 = Functions.GetGamesConf(cfg, url);
+
+		// todo: GUI: add textbox for cfg path; check button
 
 		private void main1()
 		{
@@ -125,12 +113,19 @@ namespace GSecPs3Decrypter
 				}
 				this.SetStatus("Loaded directory");
 
+				Console.WriteLine("Title: {0}.\nID: {1}", ps3SaveManager.Param_SFO.Title, ps3SaveManager.Param_SFO.TitleID);
+
 				var tid1 = ps3SaveManager.Param_SFO.Title;
-				if (tid0 != tid1) key = ps3SaveManager.GetSecureFileIdFromConfigList(GameConfigList);
-				else Console.WriteLine("same title & key");
+				if (tid0 != tid1) sfid = ps3SaveManager.GetSecureFileId2(cfg); // todo: null key check
+				else Console.WriteLine("same title & sfid");
 				tid0 = tid1;
-				//ps3SaveManager.Param_PFD.SecureFileID = key;
-				ps3SaveManager.setKey(key);
+				ps3SaveManager.Param_PFD.SecureFileID = sfid; // allows to set it directly or in other way
+				//ps3SaveManager.setsfid(sfid);
+				if (sfid == null)
+				{
+					this.button2.Visible = false;
+					this.button2.Enabled = false;
+				}
 			}
 			catch (Exception z)
 			{
