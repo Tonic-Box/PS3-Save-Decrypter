@@ -20,6 +20,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -61,6 +62,7 @@ namespace PS3FileSystem
 
         public int DecryptAllFiles()
         {
+            Console.WriteLine("Decrypting.");
             try
             {
                 if (Param_PFD == null || !Directory.Exists(RootPath))
@@ -75,6 +77,8 @@ namespace PS3FileSystem
 
         public int EncryptAllFiles()
         {
+            Console.WriteLine("Encrypting.");
+
             try
             {
                 if (Param_PFD == null || !Directory.Exists(RootPath))
@@ -100,6 +104,7 @@ namespace PS3FileSystem
             return Param_PFD.RebuilParamPFD(RootPath, encryptfiles);
         }
 
+        /*
         public int LoadGameConfigFile(string filepath, SecureFileInfo[] GameConfigList)
         {
             try
@@ -118,7 +123,9 @@ namespace PS3FileSystem
                 return -1;
             }
         }
+        */
 
+        /*
         private byte[] GetSecureFileIdFromConfigFile(string titleid, SecureFileInfo[] GameConfigList)
         {
             if (GameConfigList == null || GameConfigList.Length == 0)
@@ -129,14 +136,16 @@ namespace PS3FileSystem
                 where i.SecureFileID != null && i.SecureFileID.Length == 32
                 select i.SecureFileID.StringToByteArray()).FirstOrDefault();
         }
-
+        */
+       
+        /*
         public byte[] GetSecureFileIdFromConfigList(SecureFileInfo[] GameConfigList)
         {
             if (GameConfigList == null || GameConfigList.Length == 0)
                 return null;
 
             bool b1 = false; byte[] securefileid = null;
-            
+
             foreach (var ent in GameConfigList)
             {
                 b1 = ent.Name.Contains(Param_SFO.Title) || ent.GameIDs.Contains(Param_SFO.TitleID.Substring(0, 9));
@@ -151,7 +160,7 @@ namespace PS3FileSystem
                     }
                     else
                     {
-                        Console.WriteLine("Game is not protected / key is null!");
+                        Console.WriteLine("Game is not protected / sfid is null!");
                     }
                     break;
                 }
@@ -164,25 +173,112 @@ namespace PS3FileSystem
 
             return securefileid;
         }
+        */
 
-        public bool setKey(byte [] securefileid)
+        public byte[] GetSecureFileId2(string cfg)
+        {
+            var s1 = GetSecureFileIdFromConfig(cfg);
+            Console.WriteLine("sfid: " + s1);
+
+            var d1 = new Dictionary<string, string> {
+        {"NOTFOUND", "game is not found in " + cfg},
+        {"","null sfid"},
+        {"UNPROTECTED","game is not protected"}
+        };
+
+            // ^ probably overkill, but less text than for jagged array
+
+            foreach (var i in d1)
+            {
+                if (s1 == i.Key)
+                {
+                    Console.WriteLine(i.Value);
+                    return null;
+                }
+            }
+
+            return Functions.StringToByteArray(s1);
+        }
+
+        public string GetSecureFileIdFromConfig(string cfg)
+        {
+            var sr = File.OpenText(cfg);
+
+            string s1;
+
+            while (sr.ReadLine() != "; -- UNPROTECTED GAMES --")
+            {
+            }
+
+            while ((s1 = sr.ReadLine()) != "")
+            {
+                if (s1.Contains(Param_SFO.Title))
+                {
+                    sr.Close();
+                    return "UNPROTECTED";
+                }
+            }
+
+            var d1 = new Dictionary<string, string> {
+                { "title", "; \"" },
+                { "id", "[" },
+                { "dhk", ";disc_hash_key=" },
+                { "sfid", "secure_file_id:*=" }
+            };
+
+            var d2 = new Dictionary<string, string>(d1); // todo: init with null values
+
+            while (sr.Peek() > -1)
+            {
+                s1 = sr.ReadLine();
+                foreach (var j in d1)
+                {
+                    if (!s1.Contains(j.Value))
+                    {
+                        continue;
+                    }
+
+                    if (j.Value.Contains("=")) s1 = s1.Split('=')[1];
+                    d2[j.Key] = s1;
+
+                    if (j.Key == "sfid")
+                    {
+                        if (d2["title"].Contains(Param_SFO.Title) || d2["id"].Contains(Param_SFO.TitleID.Substring(0, 9)))
+                        {
+                            sr.Close();
+                            return s1;
+                        }
+                        d2 = new Dictionary<string, string>(d1);
+                    }
+                    break;
+                }
+            }
+
+            sr.Close();
+
+            return "NOTFOUND";
+        }
+
+        /*
+        public bool setsfid(byte [] securefileid)
         {
             //var securefileid = GetSecureFileIdFromConfigFile_2();
 
             if (securefileid != null)
             {
-                Console.WriteLine("Assigned a key!");
+                Console.WriteLine("Assigned sfid!");
                 Param_PFD.SecureFileID = securefileid;
                 return true;
             }
             else
             {
-                Console.WriteLine("null key not assigned!");
+                Console.WriteLine("null sfid not assigned!");
                 return false;
             }
             
             
         }
+        */
 
     }
 }
